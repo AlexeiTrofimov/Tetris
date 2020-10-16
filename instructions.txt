@@ -1,0 +1,55 @@
+Tetris
+-----------------------
+Ohjaus:
+W: Tetrominon kääntäminen
+A: Liikuttaminen vasemmalle
+D: Liikuttaminen oikealle
+S: Hidas pudotus
+SHIFT: Nopea pudotus
+C: Hold
+-----------------------
+Pelin eteneminen:
+Alussa pelaaja valitsee vaikeustason. Pelissä on 10 tasoa. Tason kasvaessa kasvaa myös putoavan tetrominon nopeus, sekä pistekerroin.
+Pelin aikana näytöllä näkyy ajastin, josta voi nähdä kuinka kauan pelisessio on kestänyt.
+
+Pelaajan tavoite on saada mahdollisimman suuri pistemäärä liikuttelemalla satunnaisesti generoitua tetrominoa seitsemästä eri tetrominosta. Tetrominoilla yritetään täyttää vaakarivejä liikuttelemalla ja kääntämällä putoavia tetrominoja. Rivien täytyttyä ne häviävät ja pelaaja saa pisteitä. Saatu pistemäärä riippuu vaikeustasosta ja kerralla poistettujen rivien määrästä. Taso vaihtuu kun pelaaja on poistanut 15 riviä.
+
+Pelaaja voi myös suunnitella omaa toimintaa ennakkoon, sillä pelissä näkyy seuraavana putoava teromino Next piece-laatikossa. Jos putoava teromino ei pelaajan mielestä tällä hetkellä ole sopiva pelialueelle, sen voi pistää pitoon, mistä sen voi sopivampana ajankohtana vaihtaa takaisin. Pidosta otettua tetrominoa ei voi pistää takaisin pitoon vaan se on pakko sijoittaa pelialueelle. Pelaajalla on myös mahdollisuus liikuttaa tetromino vähän aikaa sen jälkeen, kun se on koskettanut pohjaa tai jo tippuneita tetrominoja.
+-----------------------
+Pistetytys:
+1 rivi = 40*taso pistettä
+2 riviä = 100*taso pistettä
+3 riviä = 300*taso pistettä
+4 riviä = 1200*taso pistettä
+-----------
+Pelin loppu:
+Peli loppuu, kun tetrominot saavuttavat pelialueen ylärajan tai kun pelaaja on suorittanut tason 10. Pelin päädyttyä ilmoitetaan lopulliset pisteet, sekä kuinka monta prosenttia poistetuista riveistä oli tetriksiä, eli neljän rivin poistoja kerralla. Pelaaja voi aloitta uuden peli painamalla START-nappia uudestaan lopetusikkunan jälkeen.
+
+------------------------
+
+Ohjelman toteutus:
+Start-nappia painaessa tulee pop-up ikkuna, josta täytyy valita vaikeustaso välillä 1-10. Ikkunan generointi on luupilla, josta poistutaan vain, jos syötetään oikea arvo. Vaikeustasosta riippuu putoamissyklin kesto, sekä saatavien pisteiden kerroin. Vaikeustaso kasvaa kun pelaaja on poistanut 15 riviä. Tason kasvaessa putoamisnopeus kasvaa 100 ms.
+
+Pelialueen koordinaatiston origo on vasen yläkulma, missä x koordinaatti kasvaa oikealle päin ja y- koordinaatti alaspäin. Uudet tetrominot luodaan pelialueen ulkopuolelle, jotta pelin lopun rekisteröiminen toimisi oikein.
+
+Tetromino on vektori, joka koostuu block-structeista. Tässä structissa on yksittäisen neliön x ja y koordinaatit, sekä näitä koordinaatteja vastaava "graafinen neliö" QGraphicsRectItem, joka on liitetty createBlock-fuinktiossa määritettyyn graafiseen ympäristöön. Pelissä on graafiset ympäristöt pidossa olevalle- ja seuraavalle terominolle, sekä pelialueelle. Tetrominon vaihtuessa pito-, tai seuraava tetromino- ympäristöissä, kaikki QGraphicsRectItem pointerit poistetaan siitä ympäristöstä ja korvataan uusilla.
+
+Kun luodaan uusi tetromino pito-, seuraava- tai pelialueelle, halutun tetrominon alustuskoordinaatit ja väri otetaan tetromino.hh- tiedostossa sijaitsevasta vektrorista. Tetrominojen järjestys tässä tiedostossa vastaa enum tetromino_kind-tyypissä määritettyä järjestystä.
+
+Ensimmäinen putoava tetromino generoidaan ennen pelin alkua ja seuraava teromino jokaisen syklin alussa. Syklin loputtua seuraava tetrominon indeksi välitetään putoavalle tetrominolle ja generoidaan uusi seuraava tetromino. Kun seuraava tetromino vaihtuu, sen graafisen pointerit poistetaan ja luodaan uudet pointerit vastaamaan generoitua tetrominoa.
+
+Pito- ominaisuus toimii niin, että jos pito on tyhjä, niin putoava tetromino tallennetaan pitoon ja kutsutaan spawnPiece funktiota seuraavan palikan tiputtamiseen. Muuten pito- ja putoavaa tetromino vastaavat indeksit vaihtavat paikkaa. Graafisia pointereita block_ poistetaan ja luodaan sen mukaan mikä tetromino on tarpeen näyttää milläkin graafisella alueella.
+
+Uuden tetrominon tiputtaminen tapahtuu tietyin väliajoin, jonka määrittää ajastin.  Tetrominon koskiessa pelialueen pohjaa tai jo tippuneita tetrominoja, ajastin pysäytetään ja tippuvan tetrominon block-structit tallennetaan pointereina bottom-vektoriin.
+
+Hitaassa pudotuksessa, eli kun painetaan S, kutsutaan ajastimeen liitettyä pudostufunktiota tetrominoFall. SHIFT-näppäintä painamalla tätä funktiota kutsutaan siihen asti, että tippuva tetromino osuu pohjaan tai jo tippuneisiin tetrominoihin. Tämän jälkeen sama funktio kutsutaan vielä kerran, sillä se sisältää ajastimen keskeyttämisen, kutsut funktioihin, jotka tarkastavat pelin lopetuksen ja rivien poiston, sekä funktioon spawnPiece, joka luo peli- ja next-ympäristöihin seuraavat tetrominot.
+
+Tippuvan tetrominon liikkuessa mihin tahansa suuntaan, tarkistetaan jokaiselle tippuvan tetrominon neliölle, että se ei mene pelialueen ulkopuolelle. Samalla ennen liikutusta myös tarkistetaan, että mikään putoavan tetrominon neliö ei mene bottom-vektorissa olevien neliöiden päälle.
+
+Rivien poistomahdollisuus tarkistetaan jokaisen pudotuksen jälkeen. clearLine funktiossa luodaan väliaikainen kaksiulotteinen vektori, johon tallennetaan bottom-vektorin neliö-pointerit niiden koordinaatteja vastaaviin kohtiin. Tämän jälkeen tarkistetaan väliaikaisesta vektorista jokaisen rivin kohdalla, että onko se täysi.
+
+Kääntäminen on totetutettu kertomalla putoavan tetrominon neliöiden koordinaatit kiertomatriisilla, jossa kiertoakseli on tetrominoa vastaavan vektorin ensimmäinen alkio. Ennen uusien koordinaattien sijoittamista tarkistetaan kuitenkin, että ne eivät ole rajojen ulkopuolella tai eivät koske bottom-vektorin neliöihin. Peliin ei ole totetutettu ns. srs (Super rotation system), minkä takia terominojen kääntäminen on rajoitetumpaa kuin oikeassa tetriksessä.
+
+Peli loppuu, kun jonkun tetrominon y-koordinaatti on 0 tai alle.
+
+Pelin voi aloittaa uudestaan painamalla START-nappia, jolloin kaikki muuttujat ja tietorakenteet nollataan.
