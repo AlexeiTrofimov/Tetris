@@ -17,6 +17,8 @@
 #include <QTimer>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QMediaPlayer>
+#include <QMediaPlaylist>
 #include <random>
 
 
@@ -33,6 +35,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
 
 private slots:
     void on_startButton_clicked();
@@ -49,8 +52,18 @@ private:
 
     QGraphicsRectItem* block_;
 
+    QMediaPlaylist* playlist;
+    QMediaPlayer* music;
+    QMediaPlayer* line_clear_sound;
+
     QTimer fall_timer_;
+    QTimer move_timer_;
     QTimer clock_timer_;
+
+
+    bool l_pressed_;
+    bool r_pressed_;
+    bool d_pressed_;
 
     // Constants describing scene coordinates
     const int BORDER_UP = 0;
@@ -87,7 +100,6 @@ private:
     int seconds;
     int minutes;
     void gameTimer();
-
 
     // Struct that stores coordinates and graphical interpretation of a single
     // block on a game grid.
@@ -131,7 +143,7 @@ private:
     double tetrises;
 
     //Vector of Block structs that contains information about already fallen blocks
-    std::vector<Block*> bottom;
+    std::vector<Block*> fallen_blocks;
 
     //Index of first dropped tetromino that gets generated before start.
     int current_piece;
@@ -197,7 +209,7 @@ private:
      */
     void pointCounter(int removed_lines);
 
-
+    void moveFunction();
     /**
      * @brief canMoveLeft
      * @return true if every block of a tetromino can move to the left.

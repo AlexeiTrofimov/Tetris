@@ -3,6 +3,7 @@
 #include <QGraphicsRectItem>
 #include <QTimer>
 #include <QKeyEvent>
+#include <QDir>
 
 
 
@@ -10,7 +11,10 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    l_pressed_(false),
+    r_pressed_(false),
+    d_pressed_(false)
 {
     ui->setupUi(this);
 
@@ -53,6 +57,21 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->holdPieceView->setScene(hold_block_);
     hold_block_->setSceneRect(0, 0 , 0, 0);
 
+    //Creating loop for background music and assigning it from resources
+
+
+    playlist = new QMediaPlaylist();
+    playlist->addMedia(QUrl("qrc:/sounds/bcmusic.mp3"));
+    playlist->setPlaybackMode(QMediaPlaylist::Loop);
+
+    music = new QMediaPlayer();
+    line_clear_sound = new QMediaPlayer();
+    line_clear_sound->setMedia(QUrl("qrc:/sounds/clearedSound.mp3"));
+
+    music->setVolume(5);
+    music->setPlaylist(playlist);
+
+
 
 
     // Setting random engine ready for the first real call.
@@ -75,8 +94,10 @@ MainWindow::MainWindow(QWidget *parent) :
     // Setting timers for clock and falling
     fall_timer_.setSingleShot(false);
     clock_timer_.setSingleShot(false);
+    move_timer_.setSingleShot(false);
     connect(&fall_timer_, &QTimer::timeout, this, &MainWindow::tetrominoFall);
     connect(&clock_timer_, &QTimer::timeout, this, &MainWindow::gameTimer);
+    connect(&move_timer_, &QTimer::timeout, this, &MainWindow::moveFunction);
 
 
 
@@ -92,7 +113,7 @@ MainWindow::~MainWindow()
     delete hold_block_;
     delete next_block_;
 
-    for (Block* block : bottom){
+    for (Block* block : fallen_blocks){
         delete block;
     }
 }
@@ -116,45 +137,46 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
         return;
     }
 
-    if(event->key() == Qt::Key_A) {
-        if (canMoveLeft()){
+    switch (event->key()) {
 
-            for(Block& block : current_tetromino){
-                --block.x;
-                block.graphic->moveBy(-STEP,0);
+        case Qt::Key_A :
+            l_pressed_ = true;
+            break;
+        case Qt::Key_S :
+            d_pressed_ = true;
+            break;
+        case Qt::Key_W :
+            rotate();
+            break;
+        case Qt::Key_D :
+            r_pressed_ = true;
+            break;
+        case Qt::Key_Shift :
+            while (canMoveDown()){
+                tetrominoFall();
             }
-        }
-        return;
-    }
-
-    if(event->key() == Qt::Key_D) {
-        if (canMoveRight()){
-
-            for(Block& block : current_tetromino){
-                ++block.x;
-                block.graphic->moveBy(STEP,0);
-            }
-        }
-        return;
-    }
-    if(event->key() == Qt::Key_S) {
-        tetrominoFall();
-        return;
-    }
-    if(event->key() == Qt::Key_W) {
-        rotate();
-    }
-
-    if(event->key() == Qt::Key_Shift) {
-        while (canMoveDown()){
             tetrominoFall();
-        }
-        tetrominoFall();
-    }
+            break;
+        case Qt::Key_C :
+            holdPiece();
+            break;
+     }
+}
 
-    if(event->key() == Qt::Key_C) {
-        holdPiece();
-    }
+void MainWindow::keyReleaseEvent(QKeyEvent *event)
+{
+    switch (event->key()) {
+
+        case Qt::Key_A :
+            l_pressed_ = false;
+            break;
+        case Qt::Key_S :
+            d_pressed_ = false;
+            break;
+        case Qt::Key_D :
+            r_pressed_ = false;
+            break;
+        }
 }
 
 void MainWindow::tetrominoFall()
@@ -169,11 +191,12 @@ void MainWindow::tetrominoFall()
     else{
         for (Block& block: current_tetromino){
             Block* to_bottom = new Block{block};
-            bottom.push_back(to_bottom);
+            fallen_blocks.push_back(to_bottom);
         }
 
         if (gameFinished()){
             fall_timer_.stop();
+            music->stop();
             clock_timer_.stop();
             game_started = false;
             createEndBox();
@@ -252,7 +275,7 @@ void MainWindow::holdPiece()
 
 void MainWindow::clearLine()
 {
-    if (bottom.empty()){
+    if (fallen_blocks.empty()){
         return;
     }
     else{
@@ -263,7 +286,7 @@ void MainWindow::clearLine()
             grid_line.push_back({});
         }
 
-        for (Block* block : bottom){
+        for (Block* block : fallen_blocks){
             grid_line.at(block->y).push_back(block);
         }
 
@@ -271,12 +294,12 @@ void MainWindow::clearLine()
             if (grid_line.at(row).size()==12){
                 ++cleared_lines;
                 for (Block* to_remove : grid_line.at(row)){
-                    bottom.erase(std::find(bottom.begin(),bottom.end(),to_remove));
+                    fallen_blocks.erase(std::find(fallen_blocks.begin(),fallen_blocks.end(),to_remove));
 
                     delete to_remove->graphic;
                     delete to_remove;
                 }
-                for (Block* block : bottom){
+                for (Block* block : fallen_blocks){
                     if (block->y < row){
                         ++block->y;
                         block->graphic->moveBy(0,STEP);
@@ -319,6 +342,26 @@ void MainWindow::pointCounter(int removed_lines)
     ui->lcdPoints->display(points);
 }
 
+void MainWindow::moveFunction()
+{
+    if (l_pressed_ && canMoveLeft()){
+        for(Block& block : current_tetromino){
+            --block.x;
+            block.graphic->moveBy(-STEP,0);
+        }
+    }
+
+    if (r_pressed_ && canMoveRight()){
+        for(Block& block : current_tetromino){
+            ++block.x;
+            block.graphic->moveBy(STEP,0);
+        }
+    }
+    if (d_pressed_){
+        tetrominoFall();
+    }
+}
+
 bool MainWindow::canMoveLeft()
 {
 
@@ -326,8 +369,8 @@ bool MainWindow::canMoveLeft()
         if (block.x <= 0){
             return false;
         }
-        else if (!bottom.empty()){
-            for (Block* bottom_block: bottom){
+        else if (!fallen_blocks.empty()){
+            for (Block* bottom_block: fallen_blocks){
                 if (block.x == bottom_block->x+1 &&
                         block.y == bottom_block->y){
                     return false;
@@ -344,8 +387,8 @@ bool MainWindow::canMoveRight()
         if (block.x >= COLUMNS-1 ){
             return false;
         }
-        else if (!bottom.empty()){
-            for (Block* bottom_block: bottom){
+        else if (!fallen_blocks.empty()){
+            for (Block* bottom_block: fallen_blocks){
                 if (block.x == bottom_block->x-1 &&
                         block.y == bottom_block->y){
                     return false;
@@ -364,8 +407,8 @@ bool MainWindow::canMoveDown()
             return false;
         }
 
-        else if (!bottom.empty()){
-            for (Block* bottom_block: bottom){
+        else if (!fallen_blocks.empty()){
+            for (Block* bottom_block: fallen_blocks){
                 if (block.y == bottom_block->y-1 &&
                         block.x == bottom_block->x){
                     fall_timer_.stop();
@@ -406,7 +449,7 @@ void MainWindow::rotate()
             return ;
         }
         // Checking bollision with already fallen blocks
-        for (Block* bottom_block: bottom){
+        for (Block* bottom_block: fallen_blocks){
             if (newX == bottom_block->x &&
                     newY == bottom_block->y){
                 return;
@@ -466,7 +509,7 @@ void MainWindow::levelSelect()
 
 bool MainWindow::gameFinished()
 {
-    for (Block* block: bottom){
+    for (Block* block: fallen_blocks){
         if (block->y <= BORDER_UP || level == 11){
             return true;
         }
@@ -488,14 +531,14 @@ void MainWindow::restartGame()
     hold_block_->clear();
     next_block_->clear();
 
-    for (Block* block : bottom){
+    for (Block* block : fallen_blocks){
         delete block;
     }
 
     current_tetromino.clear();
     held_tetromino.clear();
     next_tetromino.clear();
-    bottom.clear();
+    fallen_blocks.clear();
 
 }
 
@@ -503,6 +546,8 @@ void MainWindow::on_startButton_clicked()
 {
     levelSelect();
     clock_timer_.start(1000);
+    move_timer_.start(100);
+    music->play();
     game_started = true;
     ui->startButton->setDisabled(true);
     spawnPiece();
