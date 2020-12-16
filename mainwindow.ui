@@ -16,7 +16,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Tetris</string>
   </property>
   <property name="styleSheet">
    <string notr="true">background-color: rgb(85, 87, 83);</string>
@@ -276,7 +276,7 @@ color: rgb(255, 255, 255);
      <x>0</x>
      <y>0</y>
      <width>672</width>
-     <height>20</height>
+     <height>23</height>
     </rect>
    </property>
   </widget>

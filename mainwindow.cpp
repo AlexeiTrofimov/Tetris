@@ -5,8 +5,6 @@
 #include <QKeyEvent>
 #include <QDir>
 
-
-
 #include <tetromino.hh>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -23,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
     next_block_ = new QGraphicsScene(this);
     hold_block_ = new QGraphicsScene(this);
 
-
+    StartWidget s;
     // The graphicsView objects are placed on the window
     // at the following coordinates
     int top_margin = 150; // y coordinate
@@ -37,11 +35,14 @@ MainWindow::MainWindow(QWidget *parent) :
     // Similarly, the height of the graphicsView is BORDER_DOWN added by 2.
     ui->graphicsView->setGeometry(gameboard_left_margin, top_margin,
                                   BORDER_RIGHT + 2, BORDER_DOWN + 2);
+    ui->graphicsView->setFixedSize(BORDER_RIGHT+4,BORDER_DOWN+4);
     ui->graphicsView->setScene(scene_);
 
     // The width of the scene_ is BORDER_RIGHT decreased by 1 and
     // the height of it is BORDER_DOWN decreased by 1, because
     scene_->setSceneRect(0, 0, BORDER_RIGHT - 1, BORDER_DOWN - 1);
+
+
 
     // Similarily to graphicsView object, 2 is added to width and length to
     // compensate for borders.
@@ -98,7 +99,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&fall_timer_, &QTimer::timeout, this, &MainWindow::tetrominoFall);
     connect(&clock_timer_, &QTimer::timeout, this, &MainWindow::gameTimer);
     connect(&move_timer_, &QTimer::timeout, this, &MainWindow::moveFunction);
-
+    connect(&start_window_,&StartWidget::GameStarted, this, &MainWindow::StartGame);
 
 
 }
@@ -492,19 +493,17 @@ void MainWindow::createEndBox()
     restartGame();
 }
 
-void MainWindow::levelSelect()
+void MainWindow::StartGame()
 {
-    int set_level = 0;
-    QInputDialog level_select;
-
-    while (set_level > 10 || set_level < 1){
-        set_level = level_select.getInt(this, tr("Tetris"),
-                                        tr("Select level (1-10):"));
-    }
-    level = set_level;
+    level = start_window_.GetLevel();
     ui->lcdLevel->display(level);
 
-
+    clock_timer_.start(1000);
+    move_timer_.start(100);
+    music->play();
+    game_started = true;
+    ui->startButton->setDisabled(true);
+    spawnPiece();
 }
 
 bool MainWindow::gameFinished()
@@ -544,13 +543,7 @@ void MainWindow::restartGame()
 
 void MainWindow::on_startButton_clicked()
 {
-    levelSelect();
-    clock_timer_.start(1000);
-    move_timer_.start(100);
-    music->play();
-    game_started = true;
-    ui->startButton->setDisabled(true);
-    spawnPiece();
+    start_window_.show();
 }
 
 

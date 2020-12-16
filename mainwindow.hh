@@ -21,6 +21,8 @@
 #include <QMediaPlaylist>
 #include <random>
 
+#include <startwidget.h>
+
 
 
 namespace Ui {
@@ -59,6 +61,8 @@ private:
     QTimer fall_timer_;
     QTimer move_timer_;
     QTimer clock_timer_;
+
+    StartWidget start_window_;
 
 
     bool l_pressed_;
@@ -258,6 +262,9 @@ private:
      * @return True if tetrominos reach upper border or if player completes
      * level 10.
      */
+
+    void StartGame();
+
     bool gameFinished();
 
     /**

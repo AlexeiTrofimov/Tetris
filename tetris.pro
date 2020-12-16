@@ -26,14 +26,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+        startwidget.cpp
 
 HEADERS += \
         mainwindow.hh \
+        startwidget.h \
         tetromino.hh
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+        startwidget.ui
 
 RESOURCES += \
     res.qrc
