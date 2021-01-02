@@ -96,6 +96,17 @@ private:
                          STEP_UP_LEFT,
                          NUMBER_OF_TETROMINOS};
 
+    const std::vector<QBrush> Block_images{
+        QPixmap(":/images/lightblue.png"),
+        QPixmap(":/images/blue.png"),
+        QPixmap(":/images/yellow.png"),
+        QPixmap(":/images/orange.png"),
+        QPixmap(":/images/green.png"),
+        QPixmap(":/images/purple.png"),
+        QPixmap(":/images/red.png")
+    };
+
+
     // For randomly selecting the next dropping tetromino
     std::default_random_engine randomEng;
     std::uniform_int_distribution<int> distr;
@@ -189,7 +200,7 @@ private:
      * @param scene, scene whre given block is created
      * @return pointer to graphical representation of a single block of a tetromino
      */
-    QGraphicsRectItem* createBlock(int x, int y, QBrush,QGraphicsScene* scene);
+    QGraphicsRectItem* createBlock(int x, int y, int type ,QGraphicsScene* scene);
 
     /**
      * @brief holdPiece

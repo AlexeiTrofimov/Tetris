@@ -2,5 +2,12 @@
     <qresource prefix="/">
         <file>sounds/bcmusic.mp3</file>
         <file>sounds/clearedSound.mp3</file>
+        <file>images/yellow.png</file>
+        <file>images/purple.png</file>
+        <file>images/orange.png</file>
+        <file>images/lightblue.png</file>
+        <file>images/green.png</file>
+        <file>images/blue.png</file>
+        <file>images/red.png</file>
     </qresource>
 </RCC>

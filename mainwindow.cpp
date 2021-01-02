@@ -126,7 +126,7 @@ MainWindow::Piece MainWindow::newTetromino(int tetromino,
     Piece piece;
     for (blockInfo block : tetrominos.at(tetromino)){
         piece.push_back({block.x, block.y,
-                         createBlock(block.x, block.y, block.color,scene)});
+                         createBlock(block.x, block.y, block.type,scene)});
     }
 
     return piece;
@@ -152,7 +152,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
         case Qt::Key_D :
             r_pressed_ = true;
             break;
-        case Qt::Key_Shift :
+        case Qt::Key_Space :
             while (canMoveDown()){
                 tetrominoFall();
             }
@@ -235,11 +235,12 @@ void MainWindow::spawnPiece()
     fall_timer_.start(speed);
 }
 
-QGraphicsRectItem* MainWindow::createBlock(int x, int y, QBrush color,QGraphicsScene* scene)
+QGraphicsRectItem* MainWindow::createBlock(int x, int y, int type,QGraphicsScene* scene)
 {
     QPen blackPen(Qt::black);
     blackPen.setWidth(2);
-    block_ = scene->addRect(x*STEP,y*STEP,SQUARE_SIDE,SQUARE_SIDE,blackPen,color);
+
+    block_ = scene->addRect(x*STEP,y*STEP,SQUARE_SIDE,SQUARE_SIDE,blackPen,Block_images.at(type));
 
     return block_;
 }
@@ -469,7 +470,7 @@ void MainWindow::rotate()
         // Replacing graphical block to match rotated block.
         delete block.graphic;
         block.graphic = createBlock(newCoordinates[i][0],newCoordinates[i][1],
-                tetrominos[current_piece].at(i).color,scene_);
+                tetrominos[current_piece].at(i).type,scene_);
         ++i;
     }
 }

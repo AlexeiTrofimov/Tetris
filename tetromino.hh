@@ -17,31 +17,23 @@
 
 
 struct blockInfo{
-    int x, y;
-    QBrush color;
+    int x, y, type;
 };
 
-QBrush yellow(Qt::yellow);
-QBrush purple(QColor(186,85,211));
-QBrush blue(Qt::blue);
-QBrush lightBlue(QColor(0,191,255));
-QBrush green(Qt::green);
-QBrush red(Qt::red);
-QBrush orange(QColor(255,165,0));
 
 const std::vector<std::vector<blockInfo>> tetrominos{
     {   //Horizontal
-        {5,-1,lightBlue},{7,-1,lightBlue},{6,-1,lightBlue},{4,-1,lightBlue}},
+        {5,-1,0},{7,-1,0},{6,-1,0},{4,-1,0}},
     {   //Left Corner
-        {5,-1,blue},{6, -1,blue},{4, -1,blue},{4, -2,blue}},
+        {5,-1,1},{6, -1,1},{4, -1,1},{4, -2,1}},
     {   //Right corner
-        {5,-1,orange},{6, -1,orange},{4, -1,orange},{6, -2,orange}},
+        {5,-1,2},{6, -1,2},{4, -1,2},{6, -2,2}},
     {   //Square
-        {5, -1,yellow},{6, -2,yellow},{6, -1,yellow},{5, -2,yellow}},
+        {5, -1,3},{6, -2,3},{6, -1,3},{5, -2,3}},
     {   //Step up right
-        {5, -1,green},{4, -1,green},{5, -2,green},{6, -2,green}},
+        {5, -1,4},{4, -1,4},{5, -2,4},{6, -2,4}},
     {   //Pyramid
-        {5, -1,purple},{6, -1,purple},{5, -2,purple},{4, -1,purple}},
+        {5, -1,5},{6, -1,5},{5, -2,5},{4, -1,5}},
     {   //Step up left
-        {5, -1,red},{6, -1,red},{5, -2,red},{4, -2,red}}
+        {5, -1,6},{6, -1,6},{5, -2,6},{4, -2,6}}
 };
